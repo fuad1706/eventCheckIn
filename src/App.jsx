@@ -11,27 +11,42 @@ const App = () => {
   const [hasAcceptedGuest, setHasAcceptedGuest] = useState(false);
   const [acceptGuest, setAcceptedGuest] = useState("Accept Guest");
   const [checkInCount, setCheckInCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   function searchName() {
-    const result = guestName.find(
-      (guest) =>
-        guest.name.toLowerCase().trim() === searchInput.toLowerCase().trim()
-    );
+    setIsLoading(true);
 
-    if (result) {
-      setMatchedGuest(result);
-      setNotFound(false);
-    } else {
-      setMatchedGuest(null);
-      setNotFound(true);
-    }
+    setTimeout(() => {
+      const result = guestName.find(
+        (guest) =>
+          guest.name.toLowerCase().trim() === searchInput.toLowerCase().trim()
+      );
+
+      if (result) {
+        setMatchedGuest(result);
+        setNotFound(false);
+      } else {
+        setMatchedGuest(null);
+        setNotFound(true);
+        setSearchInput("");
+        setTimeout(() => {
+          setNotFound(false);
+        }, 3000);
+      }
+
+      setIsLoading(false);
+    }, 2000);
   }
 
   function onWelcome() {
     if (matchedGuest && !matchedGuest.checkedIn) {
+      const timeStamp = new Date().toLocaleString();
       const updatedGuestList = guestName.map((guest) =>
-        guest.id === matchedGuest.id ? { ...guest, checkedIn: true } : guest
+        guest.id === matchedGuest.id
+          ? { ...guest, checkedIn: true, time: timeStamp }
+          : guest
       );
+      console.log(updatedGuestList);
       setGuestName(updatedGuestList);
       setHasAcceptedGuest(true);
       setSearchInput("");
@@ -39,6 +54,7 @@ const App = () => {
       setCheckInCount((prev) => prev + 1);
 
       setTimeout(() => {
+        setNotFound(false);
         setHasAcceptedGuest(false);
         setAcceptedGuest("Accept Guest");
         setMatchedGuest(null);
@@ -82,7 +98,7 @@ const App = () => {
 
         {alreadyCheckedIn && (
           <p className="text-yellow-600 text-center mt-[20px] mb-[20px] border border-yellow-600 p-[10px] rounded">
-            {matchedGuest.name} has already checked in.
+            {matchedGuest.name} has already checked in at {matchedGuest.time}
           </p>
         )}
 
@@ -90,6 +106,14 @@ const App = () => {
           <p className="text-red-500 text-center mt-[20px] mb-[20px] border border-red-500 p-[10px] rounded">
             Not a guest
           </p>
+        )}
+        {isLoading && (
+          <div className="flex justify-center items-center my-4">
+            <div className="w-6 h-6 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+            <span className="ml-2 text-sm text-gray-600">
+              Searching guest...
+            </span>
+          </div>
         )}
 
         <button
